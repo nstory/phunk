@@ -34,6 +34,11 @@ abstract class Phunk
         return implode($glue, $arr);
     }
 
+    public static function in($needle, $arr)
+    {
+        return in_array($needle, $arr);
+    }
+
     /**
      * @return static
      */
@@ -69,10 +74,26 @@ abstract class Phunk
     /**
      * @return static
      */
+    public static function reverse($arr)
+    {
+        return static::wrap(array_reverse($arr));
+    }
+
+    /**
+     * @return static
+     */
     public static function sort($func, $arr)
     {
         usort($arr, $func);
         return static::wrap($arr);
+    }
+
+    /**
+     * @return float
+     */
+    public static function sum($arr)
+    {
+        return array_sum($arr);
     }
 
     /**

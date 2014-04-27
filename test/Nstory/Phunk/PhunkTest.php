@@ -25,6 +25,12 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('a,b,c', $s);
     }
 
+    public function test_in()
+    {
+        $this->assertTrue(F::in(2, [1,2,3]));
+        $this->assertFalse(F::in(2, [1,3,4]));
+    }
+
     /**
      * @return static
      */
@@ -62,12 +68,24 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(-8, $r);
     }
 
+    public function test_reverse()
+    {
+        $r = F::reverse([1,2,3])->asArray();
+        $this->assertEquals([3,2,1], $r);
+    }
+
     public function test_sort()
     {
         $l = F::sort(function($a, $b) {
             return $a - $b;
         }, [2,3,1])->asArray();
         $this->assertEquals([1,2,3], $l);
+    }
+
+    public function test_sum()
+    {
+        $sum = F::sum([1,2,3]);
+        $this->assertEquals(6, $sum);
     }
 
     public function test_tap()
