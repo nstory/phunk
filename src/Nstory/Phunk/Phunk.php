@@ -3,55 +3,60 @@ namespace Nstory\Phunk;
 
 abstract class Phunk
 {
-
     /**
      * @return static
      */
-    public static function chunk($size, $arr)
+    public static function chunk($arr, $size, $preserve_keys = false)
     {
-        return static::wrap(array_chunk($arr, $size));
+        return static::wrap(array_chunk($arr, $size, $preserve_keys));
     }
 
     /**
+     * Preserves keys
      * @return static
      */
-    public static function filter($func, $arr)
+    public static function filter($arr, $func = null)
     {
-        $r = [];
-        foreach ($arr as $k => $v) {
-            if ($func($v, $k)) {
-                $r[$k] = $v;
-            }
-        }
-        return static::wrap($r);
+        return static::wrap(
+            $func ? array_filter($arr, $func) : array_filter($arr)
+        );
     }
 
     /**
      * @return string
      */
-    public static function implode($glue, $arr)
+    public static function implode($arr, $glue)
     {
         return implode($glue, $arr);
     }
 
-    public static function in($needle, $arr)
+    public static function in($arr, $needle, $strict = false)
     {
-        return in_array($needle, $arr);
+        return in_array($needle, $arr, $strict);
+    }
+
+    public static function keys($arr)
+    {
+        return static::wrap(array_keys($arr));
     }
 
     /**
      * @return static
      */
-    public static function ksort($func, $arr)
+    public static function ksort($arr, $func=null)
     {
-        uksort($arr, $func);
+        if ($func != null) {
+            uksort($arr, $func);
+        } else {
+            ksort($arr);
+        }
         return static::wrap($arr);
     }
 
     /**
      * @return static
      */
-    public static function map($func, $arr)
+    public static function map($arr, $func)
     {
         $r = [];
         foreach ($arr as $k => $v) {
@@ -61,9 +66,17 @@ abstract class Phunk
     }
 
     /**
+     * @return Nstory\Phunk\Path
+     */
+    public static function path()
+    {
+        return new Path;
+    }
+
+    /**
      * @return mixed
      */
-    public static function reduce($func, $initial, $arr)
+    public static function reduce($arr, $func, $initial)
     {
         foreach ($arr as $v) {
             $initial = $func($initial, $v);
@@ -74,17 +87,21 @@ abstract class Phunk
     /**
      * @return static
      */
-    public static function reverse($arr)
+    public static function reverse($arr, $preserve_keys = false)
     {
-        return static::wrap(array_reverse($arr));
+        return static::wrap(array_reverse($arr, $preserve_keys));
     }
 
     /**
      * @return static
      */
-    public static function sort($func, $arr)
+    public static function sort($arr, $func=null)
     {
-        usort($arr, $func);
+        if ($func) {
+            usort($arr, $func);
+        } else {
+            sort($arr);
+        }
         return static::wrap($arr);
     }
 
@@ -99,10 +116,28 @@ abstract class Phunk
     /**
      * @return static
      */
-    public static function tap($func, $arr)
+    public static function tap($arr, $func)
     {
         $func($arr);
         return static::wrap($arr);
+    }
+
+    /**
+     * Keys are preserved.
+     *
+     * @return static
+     */
+    public static function unique($arr)
+    {
+        return static::wrap(array_unique($arr));
+    }
+
+    /**
+     * @return static
+     */
+    public static function values($arr)
+    {
+        return static::wrap(array_values($arr));
     }
 
     /**
