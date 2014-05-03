@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Phunk : Fluent library for working PHP arrays" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Phunk</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/nstory/phunk">View on GitHub</a>
+
+          <h1 id="project_title">Phunk</h1>
+          <h2 id="project_tagline">Fluent library for working PHP arrays</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/nstory/phunk/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/nstory/phunk/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="phunk" class="anchor" href="#phunk"><span class="octicon octicon-link"></span></a>Phunk</h1>
+
+<p><a href="https://travis-ci.org/nstory/phunk"><img src="https://travis-ci.org/nstory/phunk.svg?branch=master" alt="Build Status"></a></p>
+
+<p>Phunk is a fluent library for working PHP arrays. It's, uhh.. "phunktional." This library provides a fun, convenient syntax for mapping, filtering, and otherwise manipulating arrays.</p>
+
+<h2>
+<a name="example-usage" class="anchor" href="#example-usage"><span class="octicon octicon-link"></span></a>Example Usage</h2>
+
+<div class="highlight highlight-php"><pre><span class="k">use</span> <span class="nx">Nstory\Phunk\Phunk</span> <span class="k">as</span> <span class="nx">f</span><span class="p">;</span>
+
+<span class="nv">$starships</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="nx">object</span><span class="p">)[</span>
+        <span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">'Enterprise'</span><span class="p">,</span>
+        <span class="s1">'registry'</span> <span class="o">=&gt;</span> <span class="s1">'NCC-1701'</span><span class="p">,</span>
+        <span class="s1">'captain'</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">object</span><span class="p">)[</span>
+            <span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">'James Kirk'</span><span class="p">,</span>
+            <span class="s1">'born'</span> <span class="o">=&gt;</span> <span class="mi">2233</span>
+        <span class="p">]</span>
+    <span class="p">],</span>
+    <span class="p">(</span><span class="nx">object</span><span class="p">)[</span>
+        <span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">'Enterprise'</span><span class="p">,</span>
+        <span class="s1">'registry'</span> <span class="o">=&gt;</span> <span class="s1">'NCC-1701-D'</span><span class="p">,</span>
+        <span class="s1">'captain'</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">object</span><span class="p">)[</span>
+            <span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">'Jean-Luc Picard'</span><span class="p">,</span>
+            <span class="s1">'born'</span> <span class="o">=&gt;</span> <span class="mi">2305</span>
+        <span class="p">]</span>
+    <span class="p">],</span>
+    <span class="p">(</span><span class="nx">object</span><span class="p">)[</span>
+        <span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">'Voyager'</span><span class="p">,</span>
+        <span class="s1">'registry'</span> <span class="o">=&gt;</span> <span class="s1">'NCC-74656'</span><span class="p">,</span>
+        <span class="s1">'captain'</span> <span class="o">=&gt;</span> <span class="p">(</span><span class="nx">object</span><span class="p">)[</span>
+            <span class="s1">'name'</span> <span class="o">=&gt;</span> <span class="s1">'Kathryn Janeway'</span><span class="p">,</span>
+            <span class="c1">// 'born' =&gt; unknown...</span>
+        <span class="p">]</span>
+    <span class="p">]</span>
+<span class="p">];</span>
+
+<span class="nv">$enterprise_captains</span> <span class="o">=</span>
+    <span class="nx">f</span><span class="o">::</span><span class="na">filter</span><span class="p">(</span><span class="nv">$starships</span><span class="p">,</span> <span class="k">function</span><span class="p">(</span><span class="nv">$o</span><span class="p">)</span>
+        <span class="p">{</span><span class="k">return</span> <span class="nb">preg_match</span><span class="p">(</span><span class="s1">'/enterprise/i'</span><span class="p">,</span> <span class="nv">$o</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">);})</span>
+    <span class="o">-&gt;</span><span class="na">map</span><span class="p">(</span><span class="nx">f</span><span class="o">::</span><span class="na">path</span><span class="p">()</span><span class="o">-&gt;</span><span class="na">captain</span><span class="o">-&gt;</span><span class="na">name</span><span class="p">)</span>
+    <span class="o">-&gt;</span><span class="na">asArray</span><span class="p">();</span>
+<span class="nb">assert</span><span class="p">(</span><span class="nv">$enterprise_captains</span> <span class="o">==</span> <span class="p">[</span><span class="s1">'James Kirk'</span><span class="p">,</span> <span class="s1">'Jean-Luc Picard'</span><span class="p">]);</span>
+
+</pre></div>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p><em>write me!</em></p>
+
+<h2>
+<a name="tests" class="anchor" href="#tests"><span class="octicon octicon-link"></span></a>Tests</h2>
+
+<p>Type <code>phpunit</code> and press . That easy.</p>
+
+<p>Also, and this is fun, the test suite runs all the code-snippets in this-here README.md file.</p>
+
+<h2>
+<a name="contributors" class="anchor" href="#contributors"><span class="octicon octicon-link"></span></a>Contributors</h2>
+
+<p>Pull Requests are welcome (:</p>
+
+<h2>
+<a name="license" class="anchor" href="#license"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>MIT</p>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Phunk maintained by <a href="https://github.com/nstory">nstory</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
