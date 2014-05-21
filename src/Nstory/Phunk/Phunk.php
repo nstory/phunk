@@ -66,6 +66,46 @@ abstract class Phunk
     }
 
     /**
+     * @return mixed the lowest value in $arr or null if the array
+     * is empty
+     */
+    public static function min($arr, $comparator = null)
+    {
+        if (empty($arr)) {
+            return null;
+        }
+
+        // default to the PHP implementation
+        if ($comparator === null) {
+            return min($arr);
+        }
+
+        // otherwise use the comparator to find the lowest value
+        foreach ($arr as $v) {
+            if (!isset($min) || $comparator($v, $min) < 0) {
+                $min = $v;
+            }
+        }
+        return $min;
+    }
+
+    public static function max($arr, $comparator = null)
+    {
+        if (empty($arr)) {
+            return null;
+        }
+
+        // default to the PHP implementation
+        if ($comparator === null) {
+            return max($arr);
+        }
+
+        return static::min($arr, function($a, $b) use($comparator) {
+            return $comparator($b, $a);
+        });
+    }
+
+    /**
      * @return Nstory\Phunk\Path
      */
     public static function path()

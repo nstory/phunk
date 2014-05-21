@@ -91,6 +91,54 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(['0.1', '1.2', '2.3'], $l);
     }
 
+    public function test_min()
+    {
+        $this->assertEquals(3, F::wrap([20,3,5])->min());
+    }
+
+    public function test_min_comparator()
+    {
+        $this->assertEquals('a',
+            F::min(['aa', 'a', 'aaa'], function($a, $b) {
+                return strlen($a) - strlen($b);
+            })
+        );
+    }
+
+    public function test_min_empty_array()
+    {
+        $this->assertNull(
+            F::min([])
+        );
+        $this->assertNull(
+            F::min([], function() {})
+        );
+    }
+
+    public function test_max()
+    {
+        $this->assertEquals(20, F::wrap([20,3,5])->max());
+    }
+
+    public function test_max_comparator()
+    {
+        $this->assertEquals('aaa',
+            F::max(['aa', 'a', 'aaa'], function($a, $b) {
+                return strlen($a) - strlen($b);
+            })
+        );
+    }
+
+    public function test_max_empty_array()
+    {
+        $this->assertNull(
+            F::max([])
+        );
+        $this->assertNull(
+            F::max([], function() {})
+        );
+    }
+
     public function test_path()
     {
         $this->assertInstanceOf(
