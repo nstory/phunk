@@ -169,6 +169,33 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals([2=>3, 1=>2, 0=>1], $l);
     }
 
+    public function test_shuffle()
+    {
+        $a = [1,2,3];
+        $shuffled = F::shuffle($a)->asArray();
+        $this->assertEquals(3, count($shuffled));
+        $this->assertContains(1, $shuffled);
+        $this->assertContains(2, $shuffled);
+        $this->assertContains(3, $shuffled);
+    }
+
+    public function test_slice()
+    {
+        $a = [1,2,3];
+        $this->assertEquals(
+            [2,3],
+            F::slice($a,1)->asArray()
+        );
+        $this->assertEquals(
+            [2],
+            F::slice($a,1,1)->asArray()
+        );
+        $this->assertEquals(
+            [1 => 2],
+            F::slice($a,1,1,true)->asArray()
+        );
+    }
+
     public function test_sort()
     {
         $l = F::sort([2,3,1],

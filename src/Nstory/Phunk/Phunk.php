@@ -89,6 +89,9 @@ abstract class Phunk
         return $min;
     }
 
+    /**
+     * @return mixed
+     */
     public static function max($arr, $comparator = null)
     {
         if (empty($arr)) {
@@ -130,6 +133,28 @@ abstract class Phunk
     public static function reverse($arr, $preserve_keys = false)
     {
         return static::wrap(array_reverse($arr, $preserve_keys));
+    }
+
+    /**
+     * @return static
+     */
+    public static function shuffle($arr)
+    {
+        shuffle($arr);
+        return static::wrap($arr);
+    }
+
+    /**
+     * @return static
+     */
+    public static function slice(
+        $arr,
+        $start,
+        $length = null,
+        $preserve_keys = false) {
+            return static::wrap(array_slice(
+                $arr, $start, $length, $preserve_keys
+            ));
     }
 
     /**
