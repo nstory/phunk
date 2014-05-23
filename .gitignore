@@ -1,2 +1,4 @@
 /vendor/
 /_site
+/.buildpath
+/.project
