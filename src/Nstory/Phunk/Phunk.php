@@ -3,23 +3,62 @@ namespace Nstory\Phunk;
 
 abstract class Phunk
 {
+    public static function asArray($iter)
+    {
+        if (is_array($iter)) {
+            return $iter;
+        }
+        $arr = [];
+        foreach ($iter as $k => $v) {
+            $arr[$k] = $v;
+        }
+        return $arr;
+    }
+
     /**
      * @return static
      */
     public static function chunk($arr, $size, $preserve_keys = false)
     {
-        return static::wrap(array_chunk($arr, $size, $preserve_keys));
+        $func = function() use ($arr, $size, $preserve_keys) {
+            $chunk = [];
+            foreach ($arr as $k => $v) {
+                if ($preserve_keys) {
+                    $chunk[$k] = $v;
+                } else {
+                    $chunk[] = $v;
+                }
+                if (count($chunk) == $size) {
+                    yield $chunk;
+                    $chunk = [];
+                }
+            }
+            if (!empty($chunk)) {
+                yield $chunk;
+            }
+        };
+        return static::wrap($func());
     }
 
     /**
      * Preserves keys
      * @return static
      */
-    public static function filter($arr, $func = null)
+    public static function filter($arr, $cb = null)
     {
-        return static::wrap(
-            $func ? array_filter($arr, $func) : array_filter($arr)
-        );
+        // by default, filter out falsey values
+        $cb = $cb ?: function($v) {
+            return (boolean)$v;
+        };
+
+        $func = function() use($arr, $cb) {
+            foreach ($arr as $k => $v) {
+                if ($cb($v)) {
+                    yield $k => $v;
+                }
+            }
+        };
+        return static::wrap($func());
     }
 
     /**
@@ -27,25 +66,54 @@ abstract class Phunk
      */
     public static function implode($arr, $glue)
     {
-        return implode($glue, $arr);
-    }
-
-    public static function in($arr, $needle, $strict = false)
-    {
-        return in_array($needle, $arr, $strict);
-    }
-
-    public static function keys($arr)
-    {
-        return static::wrap(array_keys($arr));
+        return implode($glue, static::asArray($arr));
     }
 
     /**
+     * @param array|Iterator $haystack collection to search
+     * @param mixed $needle value to search for
+     * @param boolean $strict use strict equality if this is true, loose otherwise
+     * @return boolean if $needle as found in $haystack
+     */
+    public static function in($haystack, $needle, $strict = false)
+    {
+        foreach ($haystack as $v) {
+            if ($strict) {
+                if ($v === $needle) {
+                    return true;
+                }
+            } else {
+                if ($v == $needle) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @param array|Iterator $iter
      * @return static
      */
-    public static function ksort($arr, $func=null)
+    public static function keys($iter)
     {
-        if ($func != null) {
+        $func = function() use($iter) {
+            foreach ($iter as $k => $v) {
+                yield $k;
+            }
+        };
+        return static::wrap($func());
+    }
+
+    /**
+     * @param array|Iterator $iter
+     * @param callable $func
+     * @return static
+     */
+    public static function ksort($iter, $func=null)
+    {
+        $arr = static::asArray($iter);
+        if ($func) {
             uksort($arr, $func);
         } else {
             ksort($arr);
@@ -54,34 +122,39 @@ abstract class Phunk
     }
 
     /**
+     * @param array|Iterator $iter
+     * @param callable $func a function with the signature function ($value) or
+     * function ($value, $key)
      * @return static
      */
-    public static function map($arr, $func)
+    public static function map($iter, $cb)
     {
-        $r = [];
-        foreach ($arr as $k => $v) {
-            $r[] = $func($v, $k);
-        }
-        return static::wrap($r);
+        $func = function() use($iter, $cb) {
+            foreach ($iter as $k => $v) {
+                yield $cb($v, $k);
+            }
+        };
+        return static::wrap($func());
     }
 
     /**
-     * @return mixed the lowest value in $arr or null if the array
+     * @param array|\Iterator $iter
+     * @param callable $comparator
+     * @return mixed the lowest value in $iter or null if the array
      * is empty
      */
-    public static function min($arr, $comparator = null)
+    public static function min($iter, $comparator = null)
     {
-        if (empty($arr)) {
+        if (empty($iter)) {
             return null;
         }
 
-        // default to the PHP implementation
-        if ($comparator === null) {
-            return min($arr);
-        }
+        // default to numeric comparison
+        $comparator = $comparator ?: function($a, $b) {
+            return $a - $b;
+        };
 
-        // otherwise use the comparator to find the lowest value
-        foreach ($arr as $v) {
+        foreach ($iter as $v) {
             if (!isset($min) || $comparator($v, $min) < 0) {
                 $min = $v;
             }
@@ -90,20 +163,19 @@ abstract class Phunk
     }
 
     /**
-     * @return mixed
+     * @param array|\Iterator $iter
+     * @param callable $comparator
+     * @return mixed the greatest value in $iter or null if the array
+     * is empty
      */
-    public static function max($arr, $comparator = null)
+    public static function max($iter, $comparator = null)
     {
-        if (empty($arr)) {
-            return null;
-        }
+        // default to numeric comparison
+        $comparator = $comparator ?: function($a, $b) {
+            return $a - $b;
+        };
 
-        // default to the PHP implementation
-        if ($comparator === null) {
-            return max($arr);
-        }
-
-        return static::min($arr, function($a, $b) use($comparator) {
+        return static::min($iter, function($a, $b) use($comparator) {
             return $comparator($b, $a);
         });
     }
@@ -117,51 +189,116 @@ abstract class Phunk
     }
 
     /**
+     * @return static
+     */
+    public static function range($start, $end, $step = 1)
+    {
+        $func = function() use($start, $end, $step) {
+            $step = abs($step);
+            if ($start <= $end) {
+                for (; $start <= $end; $start += $step) {
+                    yield $start;
+                }
+            } else {
+                for (; $start >= $end; $start -= $step) {
+                    yield $start;
+                }
+            }
+        };
+        return static::wrap($func());
+    }
+
+    /**
+     * @param array|\Iterator $iter
+     * @param callable $func
+     * @param mixed $initial
      * @return mixed
      */
-    public static function reduce($arr, $func, $initial)
+    public static function reduce($iter, $func, $initial)
     {
-        foreach ($arr as $v) {
+        foreach ($iter as $v) {
             $initial = $func($initial, $v);
         }
         return $initial;
     }
 
     /**
+     * @param Iterator|array $iter
+     * @param boolean $preserve_keys
      * @return static
      */
-    public static function reverse($arr, $preserve_keys = false)
+    public static function reverse($iter, $preserve_keys = false)
     {
-        return static::wrap(array_reverse($arr, $preserve_keys));
+        return static::wrap(
+            array_reverse(
+                static::asArray($iter),
+                $preserve_keys
+            )
+        );
     }
 
     /**
+     * @param array|\Iterator $iter
      * @return static
      */
-    public static function shuffle($arr)
+    public static function shuffle($iter)
     {
-        shuffle($arr);
-        return static::wrap($arr);
+        $array = static::asArray($iter);
+        shuffle($array);
+        return static::wrap($array);
     }
 
     /**
+     * @param array|\Iterator $iter
+     * @param int $start
+     * @param int $length
+     * @param boolean $preserve_keys
      * @return static
      */
     public static function slice(
-        $arr,
+        $iter,
         $start,
         $length = null,
         $preserve_keys = false) {
-            return static::wrap(array_slice(
-                $arr, $start, $length, $preserve_keys
-            ));
+            // if $start or $length are negative, we need the entire sequence
+            // (b/c, otherwise, we don't know the length). so, we might as
+            // well just use the built-in function
+            if ($start < 0 || $length < 0) {
+                return static::wrap(array_slice(
+                    static::asArray($iter),
+                    $start,
+                    $length,
+                    $preserve_keys
+                ));
+            }
+
+            // otherwise, use a generator so we only read what we have to
+            $func = function() use($iter, $start, $length, $preserve_keys) {
+                $i = 0;
+                foreach ($iter as $k => $v) {
+                    if ($i >= $start && ($length === null || $i < $start+$length)) {
+                        if ($preserve_keys) {
+                            yield $k => $v;
+                        } else {
+                            yield $v;
+                        }
+                    } else if ($length !== null && $i >= $start+$length) {
+                        break;
+                    }
+                    $i++;
+                }
+            };
+            return static::wrap($func());
     }
 
     /**
+     * @param array|Iterator $iter
+     * @param callable $func
      * @return static
      */
-    public static function sort($arr, $func=null)
+    public static function sort($iter, $func=null)
     {
+        $arr = static::asArray($iter);
         if ($func) {
             usort($arr, $func);
         } else {
@@ -171,18 +308,23 @@ abstract class Phunk
     }
 
     /**
-     * @return float
+     * @param array|\Iterator $iter
+     * @return static
      */
-    public static function sum($arr)
+    public static function sum($iter)
     {
+        $arr = static::asArray($iter);
         return array_sum($arr);
     }
 
     /**
+     * @param array|\Iterator $iter
+     * @param callable $func
      * @return static
      */
-    public static function tap($arr, $func)
+    public static function tap($iter, $func)
     {
+        $arr = static::asArray($iter);
         $func($arr);
         return static::wrap($arr);
     }
@@ -190,18 +332,22 @@ abstract class Phunk
     /**
      * Keys are preserved.
      *
+     * @param array|\Iterator $iter
      * @return static
      */
-    public static function unique($arr)
+    public static function unique($iter)
     {
+        $arr = static::asArray($iter);
         return static::wrap(array_unique($arr));
     }
 
     /**
+     * @param array|\Iterator $iter
      * @return static
      */
-    public static function values($arr)
+    public static function values($iter)
     {
+        $arr = static::asArray($iter);
         return static::wrap(array_values($arr));
     }
 

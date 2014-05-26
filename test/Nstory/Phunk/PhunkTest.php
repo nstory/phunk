@@ -7,14 +7,16 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
 {
     public function test_chunk()
     {
-        $l = F::chunk([1,2,3,4], 2)->asArray();
-        $this->assertEquals([[1,2], [3,4]], $l);
-    }
+        $this->assertEquals(
+            [[1,2], [3,4]],
+            F::chunk([1,2,3,4], 2)->asArray()
+        );
 
-    public function test_chunk_preserve_keys()
-    {
-        $l = F::chunk(['a' => 1, 'b' => 2, 'c' => 3], 2, true)->asArray();
-        $this->assertEquals([['a' => 1, 'b' => 2], ['c' => 3]], $l);
+        // preserve keys
+        $this->assertEquals(
+            [['a' => 1, 'b' => 2], ['c' => 3]],
+            F::chunk(['a' => 1, 'b' => 2, 'c' => 3], 2, true)->asArray()
+        );
     }
 
     public function test_filter()
@@ -33,26 +35,45 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
 
     public function test_implode()
     {
-        $s = F::implode(['a', 'b', 'c'], ',');
-        $this->assertEquals('a,b,c', $s);
+        // implode an array
+        $this->assertEquals(
+            'a,b,c',
+            F::implode(['a', 'b', 'c'], ',')
+        );
+
+        // implode a range (iterable)
+        $this->assertEquals(
+            '1,2,3',
+            F::range(1,3)->implode(',')
+        );
     }
 
     public function test_in()
     {
         $this->assertTrue(F::in([1,2,3], 2));
         $this->assertFalse(F::in([1,3,4], 2));
-    }
 
-    public function test_in_strict()
-    {
+        // strict
         $this->assertTrue(F::in([1,2,3], 2, true));
         $this->assertFalse(F::in([1,2,3], "2", true));
+
+        // iterable
+        $this->assertTrue(F::range(1,5)->in(3));
+        $this->assertFalse(F::range(1,5)->in(6));
     }
 
     public function test_keys()
     {
-        $l = F::keys(['a' => 1, 'b' => 2])->asArray();
-        $this->assertEquals(['a', 'b'], $l);
+        $this->assertEquals(
+            ['a', 'b'],
+            F::keys(['a' => 1, 'b' => 2])->asArray()
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            [0,1,2],
+            F::range(1,3)->keys()->asArray()
+        );
     }
 
     /**
@@ -60,48 +81,77 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
      */
     public function test_ksort()
     {
-        $l = F::ksort([1 => true, 3 => true, 2 => true],
-            function($a, $b) {
-                return $a - $b;
-        })->asArray();
-        $this->assertEquals([1=>true, 2=>true, 3=>true], $l);
+        $cmp = function ($a, $b) { return $a - $b; };
+
+        $this->assertEquals(
+            [1=>true, 2=>true, 3=>true],
+            F::ksort([1 => true, 3 => true, 2 => true], $cmp)->asArray()
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            [2=>1, 1=>2, 0=>3],
+            F::range(3,1)->ksort($cmp)->asArray()
+        );
     }
 
     public function test_ksort_default()
     {
-        $l = F::ksort([1 => true, 3 => true, 2 => true])->asArray();
-        $this->assertEquals([1=>true, 2=>true, 3=>true], $l);
+        $this->assertEquals(
+            [1=>true, 2=>true, 3=>true],
+            F::ksort([1 => true, 3 => true, 2 => true])->asArray()
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            [2=>1, 1=>2, 0=>3],
+            F::range(3,1)->ksort()->asArray()
+        );
     }
 
-    public function test_map_static()
+    public function test_map()
     {
-        $l = F::map([1,2,3],
-            function($v, $k) {
-                return "$k.$v";
-        })->asArray();
-        $this->assertEquals(['0.1', '1.2', '2.3'], $l);
-    }
+        $f = function($v, $k) { return "$k.$v"; };
+        $this->assertEquals(
+            ['0.1', '1.2', '2.3'],
+            F::map([1,2,3], $f)->asArray()
+        );
 
-    public function test_map_instance()
-    {
-        $l = F::wrap([1,2,3])
-            ->map(function($v, $k) {
-                return "$k.$v";
-            })->asArray();
-        $this->assertEquals(['0.1', '1.2', '2.3'], $l);
+        // with an iterator
+        $this->assertEquals(
+            ['0.1', '1.2', '2.3'],
+            F::range(1,3)->map($f)->asArray()
+        );
     }
 
     public function test_min()
     {
-        $this->assertEquals(3, F::wrap([20,3,5])->min());
+        $this->assertEquals(
+            3,
+            F::wrap([20,3,5])->min()
+        );
+
+        // with an interator
+        $this->assertEquals(
+            3,
+            F::range(3,10)->min()
+        );
     }
 
     public function test_min_comparator()
     {
-        $this->assertEquals('a',
-            F::min(['aa', 'a', 'aaa'], function($a, $b) {
-                return strlen($a) - strlen($b);
-            })
+        $cmp = function($a, $b) {
+            return strlen($a) - strlen($b);
+        };
+        $this->assertEquals(
+            'a',
+            F::min(['aa', 'a', 'aaa'], $cmp)
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            '9',
+            F::range(9,20)->min($cmp)
         );
     }
 
@@ -117,15 +167,30 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
 
     public function test_max()
     {
-        $this->assertEquals(20, F::wrap([20,3,5])->max());
+        $this->assertEquals(
+            20,
+            F::wrap([20,3,5])->max()
+        );
+        $this->assertEquals(
+            20,
+            F::range(1,20)->max()
+        );
     }
 
     public function test_max_comparator()
     {
-        $this->assertEquals('aaa',
-            F::max(['aa', 'a', 'aaa'], function($a, $b) {
-                return strlen($a) - strlen($b);
-            })
+        $cmp = function($a, $b) {
+            return strlen($a) - strlen($b);
+        };
+        $this->assertEquals(
+            'aaa',
+            F::max(['aa', 'a', 'aaa'], $cmp)
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            '100',
+            F::range(98,100)->max($cmp)
         );
     }
 
@@ -147,6 +212,30 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function test_range()
+    {
+        $this->assertEquals(
+            [1,2,3],
+            F::range(1,3)->asArray()
+        );
+        $this->assertEquals(
+            [3,2,1],
+            F::range(3,1)->asArray()
+        );
+        $this->assertEquals(
+            [5,10,15],
+            F::range(5,15,5)->asArray()
+        );
+        $this->assertEquals(
+            [15,10,5],
+            F::range(15,5,5)->asArray()
+        );
+        $this->assertEquals(
+            [15,10,5],
+            F::range(15,5,-5)->asArray()
+        );
+    }
+
     public function test_reduce()
     {
         $r = F::reduce([2,3,4],
@@ -159,8 +248,16 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
 
     public function test_reverse()
     {
-        $r = F::reverse([1,2,3])->asArray();
-        $this->assertEquals([3,2,1], $r);
+        $this->assertEquals(
+            [3,2,1],
+            F::reverse([1,2,3])->asArray()
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            [3,2,1],
+            F::range(1,3)->reverse()->asArray()
+        );
     }
 
     public function test_reverse_preserve_keys()
@@ -171,71 +268,132 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
 
     public function test_shuffle()
     {
-        $a = [1,2,3];
-        $shuffled = F::shuffle($a)->asArray();
-        $this->assertEquals(3, count($shuffled));
-        $this->assertContains(1, $shuffled);
-        $this->assertContains(2, $shuffled);
-        $this->assertContains(3, $shuffled);
+        $examples = [
+            F::wrap([1,2,3]),
+            F::range(1,3)
+        ];
+        foreach ($examples as $ex) {
+            $shuffled = $ex->shuffle()->asArray();
+            $this->assertEquals(3, count($shuffled));
+            $this->assertContains(1, $shuffled);
+            $this->assertContains(2, $shuffled);
+            $this->assertContains(3, $shuffled);
+        }
     }
 
     public function test_slice()
     {
-        $a = [1,2,3];
-        $this->assertEquals(
-            [2,3],
-            F::slice($a,1)->asArray()
-        );
-        $this->assertEquals(
-            [2],
-            F::slice($a,1,1)->asArray()
-        );
-        $this->assertEquals(
-            [1 => 2],
-            F::slice($a,1,1,true)->asArray()
-        );
+        $examples = [
+            function() { return F::wrap([1,2,3]); },
+            function() { return F::range(1,3); }
+        ];
+
+        foreach ($examples as $ex) {
+            // no length
+            $this->assertEquals(
+                [2,3],
+                $ex()->slice(1)->asArray()
+            );
+
+            // explicit length
+            $this->assertEquals(
+                [2],
+                $ex()->slice(1,1)->asArray()
+            );
+
+            // preserve keys
+            $this->assertEquals(
+                [1 => 2],
+                $ex()->slice(1,1,true)->asArray()
+            );
+
+            // negative start
+            $this->assertEquals(
+                [2,3],
+                $ex()->slice(-2, 2)->asArray()
+            );
+
+            // negative length
+            $this->assertEquals(
+                [1,2],
+                $ex()->slice(0, -1)->asArray()
+            );
+        }
     }
 
     public function test_sort()
     {
-        $l = F::sort([2,3,1],
-            function($a, $b) {
-                return $b - $a;
-            }, [2,3,1])->asArray();
-        $this->assertEquals([3,2,1], $l);
+        $cmp = function($a, $b) { return $b - $a; };
+        $this->assertEquals(
+            [3,2,1],
+            F::sort([2,3,1], $cmp)->asArray()
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            [3,2,1],
+            F::range(1,3)->sort($cmp)->asArray()
+        );
     }
 
     public function test_sort_default()
     {
         // uses sort() if no comparator is supplied
-        $l = F::sort([2,3,1])->asArray();
-        $this->assertEquals([1,2,3], $l);
+        foreach ([F::range(1,3), F::wrap([1,2,3])] as $ex) {
+            $this->assertEquals(
+                [1,2,3],
+                $ex->sort()->asArray()
+            );
+        }
     }
 
     public function test_sum()
     {
-        $sum = F::sum([1,2,3]);
-        $this->assertEquals(6, $sum);
+        foreach ([F::range(1,3), F::wrap([1,2,3])] as $ex) {
+            $this->assertEquals(
+                6,
+                $ex->sum()
+            );
+        }
     }
 
     public function test_tap()
     {
-        F::wrap([1,2,3])->tap(function($arr) use(&$actual) {
-            $actual = $arr;
-        });
-        $this->assertEquals([1,2,3], $actual);
+        foreach ([F::wrap([1,2,3]), F::range(1,3)] as $ex) {
+            $ex->tap(function($arr) use (&$actual) {
+                $this->assertEquals([1,2,3], $arr);
+                $actual++;
+            });
+        }
+        $this->assertEquals(2, $actual);
     }
 
     public function test_unique()
     {
-        $l = F::unique([1,1,3,1])->asArray();
-        $this->assertEquals([0=>1,2=>3], $l);
+        $this->assertEquals(
+            [0 => 1, 2 => 3],
+            F::unique([1,1,3,1])->asArray()
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            [1,2,3],
+            F::range(1,3)->unique()->asArray()
+        );
     }
 
     public function test_values()
     {
-        $l = F::values([1,2,3])->asArray();
-        $this->assertEquals([1,2,3], $l);
+        $this->assertEquals(
+            [1,2,3],
+            F::values([1,2,3])->asArray()
+        );
+
+        // with an iterator
+        $this->assertEquals(
+            [1,2,3],
+            F::range(1,3)->values()->asArray()
+        );
     }
 
     public function test_simplexml()

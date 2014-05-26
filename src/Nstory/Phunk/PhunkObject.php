@@ -18,9 +18,4 @@ class PhunkObject
         return call_user_func_array(__NAMESPACE__ . '\Phunk::' . $name,
             array_merge([$this->array], $args));
     }
-
-    public function asArray()
-    {
-        return $this->array;
-    }
 }
