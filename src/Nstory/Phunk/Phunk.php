@@ -3,6 +3,12 @@ namespace Nstory\Phunk;
 
 abstract class Phunk
 {
+    /**
+     * Convert a PhunkObject or an Iterator into an array; if an array is
+     * passed-in, it will be returned as-is.
+     * @param array|\Iterator $iter
+     * @return array the passed-in iterable as an array
+     */
     public static function asArray($iter)
     {
         if (is_array($iter)) {
@@ -16,6 +22,9 @@ abstract class Phunk
     }
 
     /**
+     * @param array $arr
+     * @param int $size maximum number of elements in each chunk
+     * @param boolean $preserve_keys
      * @return static
      */
     public static function chunk($arr, $size, $preserve_keys = false)
@@ -41,18 +50,20 @@ abstract class Phunk
     }
 
     /**
-     * Preserves keys
+     * Array keys are preserved.
+     * @param array|\Iterator $iter
+     * @param callable $cb
      * @return static
      */
-    public static function filter($arr, $cb = null)
+    public static function filter($iter, $cb = null)
     {
         // by default, filter out falsey values
         $cb = $cb ?: function($v) {
             return (boolean)$v;
         };
 
-        $func = function() use($arr, $cb) {
-            foreach ($arr as $k => $v) {
+        $func = function() use($iter, $cb) {
+            foreach ($iter as $k => $v) {
                 if ($cb($v)) {
                     yield $k => $v;
                 }
@@ -62,11 +73,13 @@ abstract class Phunk
     }
 
     /**
+     * @param array|\Iterator $iter
+     * @param string $glue
      * @return string
      */
-    public static function implode($arr, $glue)
+    public static function implode($iter, $glue)
     {
-        return implode($glue, static::asArray($arr));
+        return implode($glue, static::asArray($iter));
     }
 
     /**

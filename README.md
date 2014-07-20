@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/nstory/phunk.svg?branch=master)](https://travis-ci.org/nstory/phunk)
 
-Phunk is a fluent library for working PHP arrays. It's, uhh.. "phunktional." This library provides a fun, convenient syntax for mapping, filtering, and otherwise manipulating arrays.
+Phunk is a fluent library for working PHP arrays and iterators. It's, uhh.. "phunktional." This library provides a fun, convenient syntax for mapping, filtering, and otherwise manipulating collections.
 
 ## Example Usage
 ```php

@@ -7,13 +7,6 @@ use Nstory\Phunk\Path as p;
 
 class PathTest extends \PHPUnit_Framework_TestCase
 {
-    private $path;
-
-    public function setUp()
-    {
-        $this->path = new Path();
-    }
-
     public function test_empty_path()
     {
         $obj = new \stdClass;
@@ -102,7 +95,6 @@ class PathTest extends \PHPUnit_Framework_TestCase
 
     public function test_array_access_null()
     {
-        // $p = p::path()['foo'];
         $p = p::path()['foo'];
         $this->assertNull($p(null));
     }
