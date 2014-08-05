@@ -25,7 +25,8 @@ class PhunkObject
         <?php endforeach; ?>
     ) {
         return Phunk::<?= $m->getName() ?>(
-            $this->array,
+            $this->array
+            <?= $m->getNumberOfParameters() > 1 ? ',' : '' ?>
             <?php foreach (array_slice($m->getParameters(), 1) as $p): ?>
             $<?= $p->getName(); ?>
            <?= $p->getPosition() < $m->getNumberOfParameters()-1 ? ',' : '' ?>
