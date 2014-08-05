@@ -1,0 +1,11 @@
+{
+  "name": "phunk",
+  "version": "0.0.0",
+  "author": "Nathan Story <nathanielstory@gmail.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-watch": "^0.6.1",
+    "grunt-phpunit": "^0.3.3"
+  }
+}
