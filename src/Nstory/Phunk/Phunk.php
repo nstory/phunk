@@ -25,7 +25,7 @@ abstract class Phunk
      * @param array $arr
      * @param int $size maximum number of elements in each chunk
      * @param boolean $preserve_keys
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function chunk($arr, $size, $preserve_keys = false)
     {
@@ -53,7 +53,7 @@ abstract class Phunk
      * Array keys are preserved.
      * @param array|\Iterator $iter
      * @param callable $cb
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function filter($iter, $cb = null)
     {
@@ -91,14 +91,8 @@ abstract class Phunk
     public static function in($haystack, $needle, $strict = false)
     {
         foreach ($haystack as $v) {
-            if ($strict) {
-                if ($v === $needle) {
-                    return true;
-                }
-            } else {
-                if ($v == $needle) {
-                    return true;
-                }
+            if ($strict ? $v === $needle : $v == $needle) {
+                return true;
             }
         }
         return false;
@@ -106,7 +100,7 @@ abstract class Phunk
 
     /**
      * @param array|Iterator $iter
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function keys($iter)
     {
@@ -121,7 +115,7 @@ abstract class Phunk
     /**
      * @param array|Iterator $iter
      * @param callable $func
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function ksort($iter, $func=null)
     {
@@ -138,7 +132,7 @@ abstract class Phunk
      * @param array|Iterator $iter
      * @param callable $func a function with the signature function ($value) or
      * function ($value, $key)
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function map($iter, $cb)
     {
@@ -167,8 +161,9 @@ abstract class Phunk
             return $a - $b;
         };
 
+        $min = $sentinel = new \stdClass;
         foreach ($iter as $v) {
-            if (!isset($min) || $comparator($v, $min) < 0) {
+            if ($min === $sentinel || $comparator($v, $min) < 0) {
                 $min = $v;
             }
         }
@@ -202,7 +197,7 @@ abstract class Phunk
     }
 
     /**
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function range($start, $end, $step = 1)
     {
@@ -238,7 +233,7 @@ abstract class Phunk
     /**
      * @param Iterator|array $iter
      * @param boolean $preserve_keys
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function reverse($iter, $preserve_keys = false)
     {
@@ -252,7 +247,7 @@ abstract class Phunk
 
     /**
      * @param array|\Iterator $iter
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function shuffle($iter)
     {
@@ -266,7 +261,7 @@ abstract class Phunk
      * @param int $start
      * @param int $length
      * @param boolean $preserve_keys
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function slice(
         $iter,
@@ -307,7 +302,7 @@ abstract class Phunk
     /**
      * @param array|Iterator $iter
      * @param callable $func
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function sort($iter, $func=null)
     {
@@ -322,7 +317,7 @@ abstract class Phunk
 
     /**
      * @param array|\Iterator $iter
-     * @return static
+     * @return number
      */
     public static function sum($iter)
     {
@@ -333,7 +328,7 @@ abstract class Phunk
     /**
      * @param array|\Iterator $iter
      * @param callable $func
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function tap($iter, $func)
     {
@@ -346,7 +341,7 @@ abstract class Phunk
      * Keys are preserved.
      *
      * @param array|\Iterator $iter
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function unique($iter)
     {
@@ -356,16 +351,20 @@ abstract class Phunk
 
     /**
      * @param array|\Iterator $iter
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function values($iter)
     {
-        $arr = static::asArray($iter);
-        return static::wrap(array_values($arr));
+        $func = function() use ($iter) {
+            foreach ($iter as $value) {
+                yield $value;
+            }
+        };
+        return static::wrap($func());
     }
 
     /**
-     * @return static
+     * @return Nstory\Phunk\PhunkObject
      */
     public static function wrap($array)
     {

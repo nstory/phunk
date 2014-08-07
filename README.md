@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/nstory/phunk.svg?branch=master)](https://travis-ci.org/nstory/phunk)
 
-Phunk is a fluent library for working PHP arrays and iterators. It's, uhh.. "phunktional." This library provides a fun, convenient syntax for mapping, filtering, and otherwise manipulating collections.
+Phunk is a fluent library for working with PHP arrays and iterators. It's, uhh.. "phunktional." This library provides a fun, convenient syntax for mapping, filtering, and otherwise manipulating collections.
 
 ## Example Usage
 ```php
@@ -47,9 +47,7 @@ assert($enterprise_captains == ['James Kirk', 'Jean-Luc Picard']);
 _write me!_
 
 ## Tests
-Type `phpunit` and press <CR>. That easy.
-
-Also, and this is fun, the test suite runs all the code-snippets in this-here README.md file.
+Type `phpunit` and press <CR>.
 
 ## Contributors
 Pull Requests are welcome (:

@@ -165,6 +165,15 @@ class PhunkTest extends \PHPUnit_Framework_TestCase
         );
     }
 
+    public function test_min_null_value()
+    {
+        $this->assertNull(F::min([null,1,2], function($a, $b) {
+            $a = ($a === null?-99:$a);
+            $b = ($b === null?-99:$b);
+            return $a - $b;
+        }));
+    }
+
     public function test_max()
     {
         $this->assertEquals(
